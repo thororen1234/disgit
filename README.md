@@ -1,29 +1,34 @@
 # disgit
+
 A Cloudflare Worker (or Docker Container) which provides better GitHub->Discord webhook integration than the built-in Discord webhook executor.
 
-You can use this Cloudflare worker by following the steps after clicking the button below 
+You can use this Cloudflare worker by following the steps after clicking the button below
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/JRoy/disgit)
 
-
 You can also deploy disgit to docker container:
+
 * Docker Compose: Clone this repository and run `docker compose up --build -d`.
   * The worker will be started on port 8080
-* Docker Image: The disgit container image is published to the GitHub Container Registry [here](https://github.com/JRoy/disgit/pkgs/container/disgit). For more information on how to authenticate with GitHub's container registry, check the help article [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry). 
+* Docker Image: The disgit container image is published to the GitHub Container Registry [here](https://github.com/JRoy/disgit/pkgs/container/disgit). For more information on how to authenticate with GitHub's container registry, check the help article [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
 
 ## Environment Variables
+
 disgit has the following optional environment variables that you can use to customize your instance;
-- `IGNORED_BRANCHES_REGEX` - A regex pattern for branches that should be ignored
-- `IGNORED_BRANCHES` - A comma seperated list of branches that should be ignored
-- `IGNORED_USERS` - A comma seperated list of users that should be ignored
-- `IGNORED_PAYLOADS` - A comma seperated list of webhook events that should be ignored
-- `IGNORED_CHECK_RUNS` - A comma separated list of check run names that should be ignored
-- `DEBUG_PASTE` - Set to `true` to enable debug embeds.
-- `EXECUTE_MERGE_QUEUE_BRANCHES` - Set to `true` to unignore merge queue related branches.
-- `HIDE_DETAILS_BODY` - Set to `true` to omit the body of details tags from messages. This will cause just summary to be shown in the message.
+
+* `IGNORED_BRANCHES_REGEX` - A regex pattern for branches that should be ignored
+* `IGNORED_BRANCHES` - A comma seperated list of branches that should be ignored
+* `IGNORED_USERS` - A comma seperated list of users that should be ignored
+* `IGNORED_PAYLOADS` - A comma seperated list of webhook events that should be ignored
+* `IGNORED_CHECK_RUNS` - A comma separated list of check run names that should be ignored
+* `DEBUG_PASTE` - Set to `true` to enable debug embeds.
+* `EXECUTE_MERGE_QUEUE_BRANCHES` - Set to `true` to unignore merge queue related branches.
+* `HIDE_DETAILS_BODY` - Set to `true` to omit the body of details tags from messages. This will cause just summary to be shown in the message.
 
 ## Supported Events
+
 The following webhook events are supported as of now;
+
 * [check_run](https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#check_run)
 * [commit_comment](https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#commit_comment)
 * [create](https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#create)
