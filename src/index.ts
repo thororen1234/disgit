@@ -276,7 +276,7 @@ function buildEmbedBody(
         description:
           description ?
             truncate(description, 1000, env.hideDetailsBody)
-          : undefined,
+            : undefined,
         author: {
           name: truncate(sender.login, 255, env.hideDetailsBody),
           url: sender.html_url,
@@ -288,7 +288,7 @@ function buildEmbedBody(
             {
               text: truncate(footer, 255, env.hideDetailsBody),
             }
-          : undefined,
+            : undefined,
         fields: fields ?? [],
       },
     ],
@@ -300,6 +300,11 @@ function buildPing(json: PingWebhookPayload, env: BoundEnv): string | null {
   if (!sender) {
     return null;
   }
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
 
   const isOrg = hook?.['type'] === 'Organization';
 
@@ -321,6 +326,11 @@ function buildRelease(
 ): string | null {
   const { release, repository, sender } = json;
   const { draft, name, tag_name, body, html_url, prerelease } = release;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
 
   if (draft || !sender) {
     return null;
@@ -395,8 +405,12 @@ function buildPush(json: PushWebhookPayload, env: BoundEnv): string | null {
 function buildPullEnqueue(
   json: PullRequestEnqueuedWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { pull_request, repository, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   const queueUrl = `${repository['html_url']}/queue/${pull_request.base.ref}`;
 
@@ -415,6 +429,11 @@ function buildPullDequeue(
   env: BoundEnv,
 ): string | null {
   const { pull_request, repository, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
 
   // If the pull request is already merged, ignore the dequeue event
   // as the merge event will be handled separately.
@@ -437,8 +456,12 @@ function buildPullDequeue(
 function buildPullReviewComment(
   json: PullRequestReviewCommentWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { pull_request, comment, repository, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   return buildEmbedBody(
     env,
@@ -455,8 +478,13 @@ function buildPullReview(
     | PullRequestReviewSubmittedWebhookPayload
     | PullRequestReviewDismissedWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { pull_request, review, repository, action, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
 
   let state = 'reviewed';
   let color = 7829367;
@@ -492,8 +520,12 @@ function buildPullReview(
 function buildPullReadyReview(
   json: PullRequestReadyWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { pull_request, repository, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   return buildEmbedBody(
     env,
@@ -507,8 +539,12 @@ function buildPullReadyReview(
 function buildPullDraft(
   json: PullRequestDraftWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { pull_request, repository, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   return buildEmbedBody(
     env,
@@ -522,8 +558,13 @@ function buildPullDraft(
 function buildPullReopen(
   json: PullRequestReopenedWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { pull_request, repository, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
 
   let draft = pull_request.draft;
   let color = draft ? 10987431 : 37378;
@@ -541,13 +582,17 @@ function buildPullReopen(
 function buildPullClose(
   json: PullRequestClosedWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { pull_request, repository, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
 
   let merged = pull_request.merged;
   let color = merged ? 8866047 : 16722234;
   let status = merged ? 'merged' : 'closed';
-
   return buildEmbedBody(
     env,
     `[${repository['full_name']}] Pull request ${status}: #${pull_request.number} ${pull_request.title}`,
@@ -606,10 +651,14 @@ function buildIssueComment(
 function buildIssueClose(
   json: IssueClosedWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { issue, repository, sender } = json;
 
   const reason = issue.state_reason;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   return buildEmbedBody(
     env,
@@ -623,8 +672,12 @@ function buildIssueClose(
 function buildIssueReOpen(
   json: IssueReopenedWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { issue, repository, sender } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   return buildEmbedBody(
     env,
@@ -664,6 +717,11 @@ function buildPackagePublished(
     return null;
   }
 
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
+
   const pkg = 'package' in json ? json.package : json['registry_package'];
 
   return buildEmbedBody(
@@ -678,9 +736,13 @@ function buildPackagePublished(
 function buildPackageUpdated(
   json: PackageUpdatedWebhookPayload,
   env: BoundEnv,
-): string {
+): string | null {
   const { sender, repository } = json;
   const pkg = 'package' in json ? json.package : json['registry_package'];
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   return buildEmbedBody(
     env,
@@ -691,8 +753,12 @@ function buildPackageUpdated(
   );
 }
 
-function buildFork(json: ForkWebhookPayload, env: BoundEnv): string {
+function buildFork(json: ForkWebhookPayload, env: BoundEnv): string | null {
   const { sender, repository, forkee } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   return buildEmbedBody(
     env,
@@ -754,6 +820,10 @@ function buildDeleteBranch(
   const { ref, ref_type, repository, sender } = json;
 
   if (ref_type == 'branch' && env.isIgnoredBranch(ref)) {
+    return null;
+  }
+
+  if (env.isIgnoredUser(sender.login)) {
     return null;
   }
 
@@ -830,6 +900,10 @@ function buildCheck(
     return null;
   }
 
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
   if (check_suite.pull_requests && check_suite.pull_requests.length > 0) {
     let pull = check_suite['pull_requests'][0];
     if (
@@ -857,8 +931,8 @@ function buildCheck(
     color = 14984995;
     status =
       conclusion === 'timed_out' ? 'timed out'
-      : conclusion === 'action_required' ? 'requires action'
-      : 'became stale';
+        : conclusion === 'action_required' ? 'requires action'
+          : 'became stale';
   } else if (conclusion === 'neutral') {
     status = "didn't run";
   } else if (conclusion === 'skipped') {
@@ -901,8 +975,13 @@ function buildCheck(
   );
 }
 
-function buildStar(json: StarCreatedWebhookPayload, env: BoundEnv): string {
+function buildStar(json: StarCreatedWebhookPayload, env: BoundEnv): string | null {
   const { sender, repository } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
+
 
   return buildEmbedBody(
     env,
@@ -918,6 +997,10 @@ function buildDeployment(json: DeploymentCreatedWebhookPayload, env: BoundEnv) {
   const { description } = deployment;
 
   const payload = deployment['payload'] as any;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   return buildEmbedBody(
     env,
@@ -935,6 +1018,10 @@ function buildDeploymentStatus(
   const { deployment, deployment_status, repository, sender } = json;
   const { description } = deployment;
   const { state } = deployment_status;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   let color = 16726843;
   let term = 'succeeded';
@@ -969,6 +1056,10 @@ function buildDeploymentStatus(
 
 function buildWiki(json: WikiWebhookPayload, env: BoundEnv): string | null {
   const { pages, sender, repository } = json;
+
+  if (env.isIgnoredUser(sender.login)) {
+    return null;
+  }
 
   // Pages is always an array with several "actions".
   // Count the amount of "created" and "edited" actions and store the amount in a variable.
