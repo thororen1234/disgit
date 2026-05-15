@@ -3,7 +3,7 @@ services:
         build: .
         image: worker
         environment:
-            - IGNORED_BRANCH_REGEX=${IGNORED_BRANCH_REGEX}
+            - IGNORED_BRANCHES_REGEX=${IGNORED_BRANCHES_REGEX}
             - IGNORED_BRANCHES=${IGNORED_BRANCHES}
             - IGNORED_USERS=${IGNORED_USERS}
             - IGNORED_PAYLOADS=${IGNORED_PAYLOADS}

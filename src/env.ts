@@ -4,6 +4,7 @@
 export interface Env {
     IGNORED_BRANCHES_REGEX: string;
     IGNORED_BRANCHES: string;
+    IGNORED_USERS_REGEX: string;
     IGNORED_USERS: string;
     IGNORED_PAYLOADS: string;
     IGNORED_CHECK_RUNS: string;
@@ -22,6 +23,7 @@ export interface Env {
 export class BoundEnv {
     private ignoredBranchPattern?: RegExp;
     private ignoredBranches: string[];
+    private ignoredUserPattern?: RegExp;
     private ignoredUsers: string[];
     private ignoredPayloads: string[];
     private ignoredCheckRuns: string[];
@@ -32,10 +34,13 @@ export class BoundEnv {
     readonly hideDetailsBody: boolean;
 
     constructor(env: Env) {
-        if (typeof env.IGNORED_BRANCHES_REGEX !== 'undefined') {
+        if (typeof env.IGNORED_BRANCHES_REGEX !== 'undefined' && env.IGNORED_BRANCHES_REGEX !== '') {
             this.ignoredBranchPattern = new RegExp(env.IGNORED_BRANCHES_REGEX);
         }
         this.ignoredBranches = env.IGNORED_BRANCHES?.split(",") || [];
+        if (typeof env.IGNORED_USERS_REGEX !== 'undefined' && env.IGNORED_USERS_REGEX !== '') {
+            this.ignoredUserPattern = new RegExp(env.IGNORED_USERS_REGEX, 'i');
+        }
         this.ignoredUsers = env.IGNORED_USERS?.split(",") || [];
         this.ignoredPayloads = env.IGNORED_PAYLOADS?.split(",") || [];
         this.ignoredCheckRuns = env.IGNORED_CHECK_RUNS?.split(",") || [];
@@ -63,7 +68,7 @@ export class BoundEnv {
      * @return {boolean}
      */
     isIgnoredUser(user: string): boolean {
-        return this.ignoredUsers.includes(user);
+        return (this.ignoredUserPattern && this.ignoredUserPattern.test(user)) || this.ignoredUsers.includes(user);
     }
 
     /**
